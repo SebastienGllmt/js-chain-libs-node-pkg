@@ -119,6 +119,9 @@ module.exports.AddressDiscrimination = Object.freeze({ Production:0,Test:1, });
 module.exports.AddressKind = Object.freeze({ Single:0,Group:1,Account:2,Multisig:3, });
 /**
 */
+module.exports.DelegationKind = Object.freeze({ NonDelegated:0,Full:1,Ratio:2, });
+/**
+*/
 module.exports.CertificateType = Object.freeze({ StakeDelegation:0,OwnerStakeDelegation:1,PoolRegistration:2,PoolRetirement:3,PoolUpdate:4, });
 /**
 * This is either an single account or a multisig account depending on the witness type
@@ -1077,6 +1080,20 @@ class DelegationType {
         const ret = wasm.delegationtype_ratio(r.ptr);
         return DelegationType.__wrap(ret);
     }
+    /**
+    * @returns {number}
+    */
+    get_kind() {
+        const ret = wasm.delegationtype_get_kind(this.ptr);
+        return ret;
+    }
+    /**
+    * @returns {PoolId}
+    */
+    get_full() {
+        const ret = wasm.delegationtype_get_full(this.ptr);
+        return ret === 0 ? undefined : PoolId.__wrap(ret);
+    }
 }
 module.exports.DelegationType = DelegationType;
 /**
@@ -1237,6 +1254,15 @@ class Fragment {
         return Transaction.__wrap(ret);
     }
     /**
+    * @returns {OldUtxoDeclaration}
+    */
+    get_old_utxo_declaration() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+        const ret = wasm.fragment_get_old_utxo_declaration(ptr);
+        return OldUtxoDeclaration.__wrap(ret);
+    }
+    /**
     * @returns {Uint8Array}
     */
     as_bytes() {
@@ -1246,6 +1272,14 @@ class Fragment {
         const v0 = getArrayU8FromWasm(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1]).slice();
         wasm.__wbindgen_free(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1] * 1);
         return v0;
+    }
+    /**
+    * @param {any} bytes
+    * @returns {Fragment}
+    */
+    static from_bytes(bytes) {
+        const ret = wasm.fragment_from_bytes(addHeapObject(bytes));
+        return Fragment.__wrap(ret);
     }
     /**
     * @returns {boolean}
@@ -1893,6 +1927,44 @@ class KesPublicKey {
 module.exports.KesPublicKey = KesPublicKey;
 /**
 */
+class LegacyDaedalusPrivateKey {
+
+    static __wrap(ptr) {
+        const obj = Object.create(LegacyDaedalusPrivateKey.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_legacydaedalusprivatekey_free(ptr);
+    }
+    /**
+    * @param {Uint8Array} bytes
+    * @returns {LegacyDaedalusPrivateKey}
+    */
+    static from_bytes(bytes) {
+        const ret = wasm.legacydaedalusprivatekey_from_bytes(passArray8ToWasm(bytes), WASM_VECTOR_LEN);
+        return LegacyDaedalusPrivateKey.__wrap(ret);
+    }
+    /**
+    * @returns {Uint8Array}
+    */
+    as_bytes() {
+        const retptr = 8;
+        const ret = wasm.legacydaedalusprivatekey_as_bytes(retptr, this.ptr);
+        const memi32 = getInt32Memory();
+        const v0 = getArrayU8FromWasm(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1]).slice();
+        wasm.__wbindgen_free(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1] * 1);
+        return v0;
+    }
+}
+module.exports.LegacyDaedalusPrivateKey = LegacyDaedalusPrivateKey;
+/**
+*/
 class LegacyUtxoWitness {
 
     static __wrap(ptr) {
@@ -2004,6 +2076,52 @@ class MultisigAddress {
     }
 }
 module.exports.MultisigAddress = MultisigAddress;
+/**
+*/
+class OldUtxoDeclaration {
+
+    static __wrap(ptr) {
+        const obj = Object.create(OldUtxoDeclaration.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_oldutxodeclaration_free(ptr);
+    }
+    /**
+    * @returns {number}
+    */
+    size() {
+        const ret = wasm.oldutxodeclaration_size(this.ptr);
+        return ret >>> 0;
+    }
+    /**
+    * @param {number} index
+    * @returns {string}
+    */
+    get_address(index) {
+        const retptr = 8;
+        const ret = wasm.oldutxodeclaration_get_address(retptr, this.ptr, index);
+        const memi32 = getInt32Memory();
+        const v0 = getStringFromWasm(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1]).slice();
+        wasm.__wbindgen_free(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1] * 1);
+        return v0;
+    }
+    /**
+    * @param {number} index
+    * @returns {Value}
+    */
+    get_value(index) {
+        const ret = wasm.oldutxodeclaration_get_value(this.ptr, index);
+        return Value.__wrap(ret);
+    }
+}
+module.exports.OldUtxoDeclaration = OldUtxoDeclaration;
 /**
 * Type for representing a Transaction Output, composed of an Address and a Value
 */
@@ -2977,7 +3095,6 @@ class TimeOffsetSeconds {
 }
 module.exports.TimeOffsetSeconds = TimeOffsetSeconds;
 /**
-* Type representing a unsigned transaction
 */
 class Transaction {
 
@@ -3602,17 +3719,17 @@ class Witness {
         return Witness.__wrap(ret);
     }
     /**
-    * Generate Witness for an legacy utxo-based transaction Input
+    * Generate Witness for a legacy icarus utxo-based transaction Input
     * @param {Hash} genesis_hash
     * @param {TransactionSignDataHash} transaction_id
     * @param {Bip32PrivateKey} secret_key
     * @returns {Witness}
     */
-    static for_legacy_utxo(genesis_hash, transaction_id, secret_key) {
+    static for_legacy_icarus_utxo(genesis_hash, transaction_id, secret_key) {
         _assertClass(genesis_hash, Hash);
         _assertClass(transaction_id, TransactionSignDataHash);
         _assertClass(secret_key, Bip32PrivateKey);
-        const ret = wasm.witness_for_legacy_utxo(genesis_hash.ptr, transaction_id.ptr, secret_key.ptr);
+        const ret = wasm.witness_for_legacy_icarus_utxo(genesis_hash.ptr, transaction_id.ptr, secret_key.ptr);
         return Witness.__wrap(ret);
     }
     /**
@@ -3620,10 +3737,24 @@ class Witness {
     * @param {LegacyUtxoWitness} witness
     * @returns {Witness}
     */
-    static from_external_legacy_utxo(key, witness) {
+    static from_external_legacy_icarus_utxo(key, witness) {
         _assertClass(key, Bip32PublicKey);
         _assertClass(witness, LegacyUtxoWitness);
-        const ret = wasm.witness_from_external_legacy_utxo(key.ptr, witness.ptr);
+        const ret = wasm.witness_from_external_legacy_icarus_utxo(key.ptr, witness.ptr);
+        return Witness.__wrap(ret);
+    }
+    /**
+    * Generate Witness for a legacy daedalus utxo-based transaction Input
+    * @param {Hash} genesis_hash
+    * @param {TransactionSignDataHash} transaction_id
+    * @param {LegacyDaedalusPrivateKey} secret_key
+    * @returns {Witness}
+    */
+    static for_legacy_daedalus_utxo(genesis_hash, transaction_id, secret_key) {
+        _assertClass(genesis_hash, Hash);
+        _assertClass(transaction_id, TransactionSignDataHash);
+        _assertClass(secret_key, LegacyDaedalusPrivateKey);
+        const ret = wasm.witness_for_legacy_daedalus_utxo(genesis_hash.ptr, transaction_id.ptr, secret_key.ptr);
         return Witness.__wrap(ret);
     }
     /**
