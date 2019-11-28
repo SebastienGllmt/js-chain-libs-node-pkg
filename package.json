@@ -1,5 +1,5 @@
 {
-  "name": "js-chain-libs",
+  "name": "@emurgo/js-chain-libs",
   "collaborators": [
     "Enzo Cioppettini <ecioppettini@atixlabs.com>",
     "Sebastien Guillemot <sebastien@emurgo.io>"
