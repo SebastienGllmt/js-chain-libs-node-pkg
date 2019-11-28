@@ -119,10 +119,13 @@ module.exports.AddressDiscrimination = Object.freeze({ Production:0,Test:1, });
 module.exports.AddressKind = Object.freeze({ Single:0,Group:1,Account:2,Multisig:3, });
 /**
 */
+module.exports.InputKind = Object.freeze({ Account:0,Utxo:1, });
+/**
+*/
 module.exports.DelegationKind = Object.freeze({ NonDelegated:0,Full:1,Ratio:2, });
 /**
 */
-module.exports.CertificateType = Object.freeze({ StakeDelegation:0,OwnerStakeDelegation:1,PoolRegistration:2,PoolRetirement:3,PoolUpdate:4, });
+module.exports.CertificateKind = Object.freeze({ StakeDelegation:0,OwnerStakeDelegation:1,PoolRegistration:2,PoolRetirement:3,PoolUpdate:4, });
 /**
 * This is either an single account or a multisig account depending on the witness type
 */
@@ -898,6 +901,22 @@ class BlockId {
         wasm.__wbg_blockid_free(ptr);
     }
     /**
+    * @param {Uint8Array} bytes
+    * @returns {Hash}
+    */
+    static calculate(bytes) {
+        const ret = wasm.blockid_calculate(passArray8ToWasm(bytes), WASM_VECTOR_LEN);
+        return Hash.__wrap(ret);
+    }
+    /**
+    * @param {any} bytes
+    * @returns {BlockId}
+    */
+    static from_bytes(bytes) {
+        const ret = wasm.blockid_from_bytes(addHeapObject(bytes));
+        return BlockId.__wrap(ret);
+    }
+    /**
     * @returns {Uint8Array}
     */
     as_bytes() {
@@ -1248,18 +1267,14 @@ class Fragment {
     * @returns {Transaction}
     */
     get_transaction() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-        const ret = wasm.fragment_get_transaction(ptr);
+        const ret = wasm.fragment_get_transaction(this.ptr);
         return Transaction.__wrap(ret);
     }
     /**
     * @returns {OldUtxoDeclaration}
     */
     get_old_utxo_declaration() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-        const ret = wasm.fragment_get_old_utxo_declaration(ptr);
+        const ret = wasm.fragment_get_old_utxo_declaration(this.ptr);
         return OldUtxoDeclaration.__wrap(ret);
     }
     /**
@@ -1381,8 +1396,16 @@ class FragmentId {
     * @param {Uint8Array} bytes
     * @returns {FragmentId}
     */
+    static calculate(bytes) {
+        const ret = wasm.fragmentid_calculate(passArray8ToWasm(bytes), WASM_VECTOR_LEN);
+        return FragmentId.__wrap(ret);
+    }
+    /**
+    * @param {any} bytes
+    * @returns {FragmentId}
+    */
     static from_bytes(bytes) {
-        const ret = wasm.fragmentid_from_bytes(passArray8ToWasm(bytes), WASM_VECTOR_LEN);
+        const ret = wasm.fragmentid_from_bytes(addHeapObject(bytes));
         return FragmentId.__wrap(ret);
     }
     /**
@@ -1510,8 +1533,8 @@ class Hash {
     * @param {Uint8Array} bytes
     * @returns {Hash}
     */
-    static from_bytes(bytes) {
-        const ret = wasm.hash_from_bytes(passArray8ToWasm(bytes), WASM_VECTOR_LEN);
+    static calculate(bytes) {
+        const ret = wasm.hash_calculate(passArray8ToWasm(bytes), WASM_VECTOR_LEN);
         return Hash.__wrap(ret);
     }
     /**
@@ -1652,16 +1675,11 @@ class Input {
         return Input.__wrap(ret);
     }
     /**
-    * Get the kind of Input, this can be either \"Account\" or \"Utxo\
-    * @returns {string}
+    * @returns {number}
     */
     get_type() {
-        const retptr = 8;
-        const ret = wasm.input_get_type(retptr, this.ptr);
-        const memi32 = getInt32Memory();
-        const v0 = getStringFromWasm(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1]).slice();
-        wasm.__wbindgen_free(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1] * 1);
-        return v0;
+        const ret = wasm.input_get_type(this.ptr);
+        return ret;
     }
     /**
     * @returns {boolean}
@@ -1699,6 +1717,25 @@ class Input {
     get_account_identifier() {
         const ret = wasm.input_get_account_identifier(this.ptr);
         return AccountIdentifier.__wrap(ret);
+    }
+    /**
+    * @returns {Uint8Array}
+    */
+    as_bytes() {
+        const retptr = 8;
+        const ret = wasm.input_as_bytes(retptr, this.ptr);
+        const memi32 = getInt32Memory();
+        const v0 = getArrayU8FromWasm(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1]).slice();
+        wasm.__wbindgen_free(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1] * 1);
+        return v0;
+    }
+    /**
+    * @param {any} bytes
+    * @returns {Input}
+    */
+    static from_bytes(bytes) {
+        const ret = wasm.input_from_bytes(addHeapObject(bytes));
+        return Input.__wrap(ret);
     }
 }
 module.exports.Input = Input;
@@ -3120,13 +3157,6 @@ class Transaction {
         return TransactionSignDataHash.__wrap(ret);
     }
     /**
-    * @returns {Witnesses}
-    */
-    witnesses() {
-        const ret = wasm.transaction_witnesses(this.ptr);
-        return Witnesses.__wrap(ret);
-    }
-    /**
     * Get collection of the inputs in the transaction (this allocates new copies of all the values)
     * @returns {Inputs}
     */
@@ -3148,6 +3178,13 @@ class Transaction {
     certificate() {
         const ret = wasm.transaction_certificate(this.ptr);
         return ret === 0 ? undefined : Certificate.__wrap(ret);
+    }
+    /**
+    * @returns {Witnesses}
+    */
+    witnesses() {
+        const ret = wasm.transaction_witnesses(this.ptr);
+        return Witnesses.__wrap(ret);
     }
 }
 module.exports.Transaction = Transaction;
