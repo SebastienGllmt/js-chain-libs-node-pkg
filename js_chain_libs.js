@@ -1038,6 +1038,17 @@ class Certificate {
         const ret = wasm.certificate_get_pool_update(this.ptr);
         return PoolUpdate.__wrap(ret);
     }
+    /**
+    * @returns {Uint8Array}
+    */
+    as_bytes() {
+        const retptr = 8;
+        const ret = wasm.certificate_as_bytes(retptr, this.ptr);
+        const memi32 = getInt32Memory();
+        const v0 = getArrayU8FromWasm(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1]).slice();
+        wasm.__wbindgen_free(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1] * 1);
+        return v0;
+    }
 }
 module.exports.Certificate = Certificate;
 /**
@@ -2703,7 +2714,6 @@ class PoolRegistration {
         return TimeOffsetSeconds.__wrap(ret);
     }
     /**
-    * TODO: missing PoolPermissions. Don\'t think we need this for now
     * @returns {PublicKeys}
     */
     owners() {
