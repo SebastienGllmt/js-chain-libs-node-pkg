@@ -1530,10 +1530,10 @@ class GenesisPraosLeader {
 module.exports.GenesisPraosLeader = GenesisPraosLeader;
 /**
 */
-class GenesisProasLeaderHash {
+class GenesisPraosLeaderHash {
 
     static __wrap(ptr) {
-        const obj = Object.create(GenesisProasLeaderHash.prototype);
+        const obj = Object.create(GenesisPraosLeaderHash.prototype);
         obj.ptr = ptr;
 
         return obj;
@@ -1543,29 +1543,29 @@ class GenesisProasLeaderHash {
         const ptr = this.ptr;
         this.ptr = 0;
 
-        wasm.__wbg_genesisproasleaderhash_free(ptr);
+        wasm.__wbg_genesispraosleaderhash_free(ptr);
     }
     /**
     * @param {string} hex_string
-    * @returns {GenesisProasLeaderHash}
+    * @returns {GenesisPraosLeaderHash}
     */
     static from_hex(hex_string) {
-        const ret = wasm.genesisproasleaderhash_from_hex(passStringToWasm(hex_string), WASM_VECTOR_LEN);
-        return GenesisProasLeaderHash.__wrap(ret);
+        const ret = wasm.genesispraosleaderhash_from_hex(passStringToWasm(hex_string), WASM_VECTOR_LEN);
+        return GenesisPraosLeaderHash.__wrap(ret);
     }
     /**
     * @returns {string}
     */
     to_string() {
         const retptr = 8;
-        const ret = wasm.genesisproasleaderhash_to_string(retptr, this.ptr);
+        const ret = wasm.genesispraosleaderhash_to_string(retptr, this.ptr);
         const memi32 = getInt32Memory();
         const v0 = getStringFromWasm(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1]).slice();
         wasm.__wbindgen_free(memi32[retptr / 4 + 0], memi32[retptr / 4 + 1] * 1);
         return v0;
     }
 }
-module.exports.GenesisProasLeaderHash = GenesisProasLeaderHash;
+module.exports.GenesisPraosLeaderHash = GenesisPraosLeaderHash;
 /**
 */
 class GroupAddress {
@@ -2898,14 +2898,14 @@ class PoolUpdate {
     /**
     * @param {PoolId} pool_id
     * @param {TimeOffsetSeconds} start_validity
-    * @param {GenesisProasLeaderHash} previous_keys
+    * @param {GenesisPraosLeaderHash} previous_keys
     * @param {GenesisPraosLeader} updated_keys
     * @returns {PoolUpdate}
     */
     static new(pool_id, start_validity, previous_keys, updated_keys) {
         _assertClass(pool_id, PoolId);
         _assertClass(start_validity, TimeOffsetSeconds);
-        _assertClass(previous_keys, GenesisProasLeaderHash);
+        _assertClass(previous_keys, GenesisPraosLeaderHash);
         _assertClass(updated_keys, GenesisPraosLeader);
         const ret = wasm.poolupdate_new(pool_id.ptr, start_validity.ptr, previous_keys.ptr, updated_keys.ptr);
         return PoolUpdate.__wrap(ret);
@@ -2925,11 +2925,11 @@ class PoolUpdate {
         return TimeOffsetSeconds.__wrap(ret);
     }
     /**
-    * @returns {GenesisProasLeaderHash}
+    * @returns {GenesisPraosLeaderHash}
     */
     previous_keys() {
         const ret = wasm.poolupdate_previous_keys(this.ptr);
-        return GenesisProasLeaderHash.__wrap(ret);
+        return GenesisPraosLeaderHash.__wrap(ret);
     }
     /**
     * @returns {GenesisPraosLeader}
