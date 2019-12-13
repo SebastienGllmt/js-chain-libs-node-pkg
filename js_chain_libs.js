@@ -1088,6 +1088,20 @@ class DelegationRatio {
         const ret = wasm.delegationratio_new(parts, pools.ptr);
         return ret === 0 ? undefined : DelegationRatio.__wrap(ret);
     }
+    /**
+    * @returns {number}
+    */
+    parts() {
+        const ret = wasm.delegationratio_parts(this.ptr);
+        return ret;
+    }
+    /**
+    * @returns {PoolDelegationRatios}
+    */
+    pools() {
+        const ret = wasm.delegationratio_pools(this.ptr);
+        return PoolDelegationRatios.__wrap(ret);
+    }
 }
 module.exports.DelegationRatio = DelegationRatio;
 /**
@@ -2605,6 +2619,20 @@ class PoolDelegationRatio {
         _assertClass(pool, PoolId);
         const ret = wasm.pooldelegationratio_new(pool.ptr, part);
         return PoolDelegationRatio.__wrap(ret);
+    }
+    /**
+    * @returns {number}
+    */
+    parts() {
+        const ret = wasm.pooldelegationratio_parts(this.ptr);
+        return ret;
+    }
+    /**
+    * @returns {PoolId}
+    */
+    pool() {
+        const ret = wasm.pooldelegationratio_pool(this.ptr);
+        return PoolId.__wrap(ret);
     }
 }
 module.exports.PoolDelegationRatio = PoolDelegationRatio;
