@@ -1274,13 +1274,15 @@ class Fee {
     * @param {Value} constant
     * @param {Value} coefficient
     * @param {Value} certificate
+    * @param {PerCertificateFee} per_certificate_fee
     * @returns {Fee}
     */
-    static linear_fee(constant, coefficient, certificate) {
+    static linear_fee(constant, coefficient, certificate, per_certificate_fee) {
         _assertClass(constant, Value);
         _assertClass(coefficient, Value);
         _assertClass(certificate, Value);
-        const ret = wasm.fee_linear_fee(constant.ptr, coefficient.ptr, certificate.ptr);
+        _assertClass(per_certificate_fee, PerCertificateFee);
+        const ret = wasm.fee_linear_fee(constant.ptr, coefficient.ptr, certificate.ptr, per_certificate_fee.ptr);
         return Fee.__wrap(ret);
     }
     /**
@@ -2593,6 +2595,53 @@ class PayloadAuthData {
     }
 }
 module.exports.PayloadAuthData = PayloadAuthData;
+/**
+*/
+class PerCertificateFee {
+
+    static __wrap(ptr) {
+        const obj = Object.create(PerCertificateFee.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_percertificatefee_free(ptr);
+    }
+    /**
+    * @returns {PerCertificateFee}
+    */
+    static new() {
+        const ret = wasm.percertificatefee_new();
+        return PerCertificateFee.__wrap(ret);
+    }
+    /**
+    * @param {Value} val
+    */
+    set_pool_registration(val) {
+        _assertClass(val, Value);
+        wasm.percertificatefee_set_pool_registration(this.ptr, val.ptr);
+    }
+    /**
+    * @param {Value} val
+    */
+    set_stake_delegation(val) {
+        _assertClass(val, Value);
+        wasm.percertificatefee_set_stake_delegation(this.ptr, val.ptr);
+    }
+    /**
+    * @param {Value} val
+    */
+    set_owner_stake_delegation(val) {
+        _assertClass(val, Value);
+        wasm.percertificatefee_set_owner_stake_delegation(this.ptr, val.ptr);
+    }
+}
+module.exports.PerCertificateFee = PerCertificateFee;
 /**
 */
 class PoolDelegationRatio {
